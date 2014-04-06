@@ -8,13 +8,16 @@
 #ifndef USARTC0_H_
 #define USARTC0_H_
 
+extern volatile uint8_t *timer;
+
 // USARTC0 initialization
 void usartc0_init();
 
 // USARTC0 Receiver buffer
 #define RX_BUFFER_SIZE_USARTC0 8
 
-char getchar();
+char getcharc0();
+int getcharc0Time(uint8_t time);
 
 // USARTC0 Transmitter buffer
 #define TX_BUFFER_SIZE_USARTC0 8
@@ -23,5 +26,6 @@ char getchar();
 // USARTC0 is used as the default output device by the 'putchar' function
 
 void putcharc0(char c);
+
 
 #endif /* USARTC0_H_ */

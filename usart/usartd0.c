@@ -83,7 +83,7 @@ USARTD0.CTRLB=(USARTD0.CTRLB & (~(USART_RXEN_bm | USART_TXEN_bm | USART_CLK2X_bm
 ISR(USARTD0_RXC_vect)
 {
 unsigned char status;
-char data;
+uint8_t data;
 
 status=USARTD0.STATUS;
 data=USARTD0.DATA;
@@ -102,9 +102,9 @@ putcharc0(data);
 
 
 
-char getchard0(void)
+int getchard0(FILE *stream)
 {
-char data;
+int data;
 
 while (rx_counter_usartd0==0);
 data=rx_buffer_usartd0[rx_rd_index_usartd0++];
@@ -154,4 +154,24 @@ else{
 asm("sei");
 }
 
+
+int putchard0Stream(char c, FILE *stream)
+{
+while (tx_counter_usartd0 == TX_BUFFER_SIZE_USARTD0);
+asm("cli");
+if (tx_counter_usartd0 || ((USARTD0.STATUS & USART_DREIF_bm)==0))
+   {
+   tx_buffer_usartd0[tx_wr_index_usartd0++]=c;
+   if (tx_wr_index_usartd0 == TX_BUFFER_SIZE_USARTD0) tx_wr_index_usartd0=0;
+   ++tx_counter_usartd0;
+   }
+else{
+#ifdef USARTD0_DE_PORT
+	USARTD0_DE_NADAWANIE;
+#endif
+	USARTD0.DATA=c;
+}
+asm("sei");
+return 0;
+}
 

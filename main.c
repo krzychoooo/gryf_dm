@@ -7,17 +7,24 @@
 
 #include <avr/io.h>
 #include <util/delay.h>
+#include <stdio.h>
+#include <stdbool.h>
 //#include <avr/interrupt.h>
 #include "pcb.h"
 #include "./USART/usartc0.h"
 #include "./USART/usartd0.h"
 #include "./XMEGA_CLK/xmega_clk.h"
 
+FILE mystdout = FDEV_SETUP_STREAM(putchard0Stream, NULL, _FDEV_SETUP_WRITE);
+FILE mystdin = FDEV_SETUP_STREAM(NULL, getchard0, _FDEV_SETUP_READ);
+
 int main()
 {
 	unsigned char n;
 
 
+	stdin = &mystdin;
+	stdout = &mystdout;
 
 	// Interrupt system initialization
 	// Optimize for speed
