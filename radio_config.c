@@ -31,17 +31,21 @@ TRC1180Config rc1180ConfigRam;
 TRC1180Config rc1180ConfigEEPROM EEMEM;
 
 void copyConfigEEpromToRam() {
-	eeprom_read_block(&rc1180ConfigRam, &rc1180ConfigEEPROM,
-			sizeof(rc1180ConfigRam));
+	eeprom_read_block(&rc1180ConfigRam, &rc1180ConfigEEPROM, sizeof(rc1180ConfigRam));
+	eeprom_read_block(slaveModulesAddress, EEslaveModulesAddress, sizeof(slaveModulesAddress));
+	numberSlaveModules = eeprom_read_byte(&EEnumberSlaveModules);
 }
 
 void copyConfigRamToEEprom() {
-	eeprom_write_block(&rc1180ConfigRam, &rc1180ConfigEEPROM,
-			sizeof(rc1180ConfigRam));
+	eeprom_write_block(&rc1180ConfigRam, &rc1180ConfigEEPROM, sizeof(rc1180ConfigRam));
+	eeprom_write_block(slaveModulesAddress, EEslaveModulesAddress, sizeof(slaveModulesAddress));
+	eeprom_write_byte(&EEnumberSlaveModules, numberSlaveModules);
 }
 
 void copyConfigFlashToRam() {
 	memcpy_P(&rc1180ConfigRam, &rc1180ConfigFlash, sizeof(rc1180ConfigRam));
+	memcpy_P(slaveModulesAddress, FlashslaveModulesAddress, sizeof(rc1180ConfigRam));
+	numberSlaveModules = pgm_read_byte(&FlashnumberSlaveModules);
 }
 
 void setRC1180FromConfigRam() {
@@ -57,6 +61,7 @@ void radioRC1180Init() {
 void setDestinationAddres(uint8_t destAddress) {
 	sendCommandToRC1180('T', destAddress);
 }
+
 
 uint8_t sendCommandToRC1180(uint8_t command, uint8_t data) {
 	uint8_t retData = 0;
@@ -168,10 +173,12 @@ void printNewVal() {
  uint8_t Rssi;
  uint8_t CRCMode;
  */
-void userSetRC1180() {
+void userSetRC1180(void) {
 	uint8_t i;
 	uint16_t getData;
 //	uint8_t *ptr;
+
+	printf("%cUSTAWIENIA RADIOWE\n",12);
 
 	while (1) {
 		printf("0 Wyjœcie z edycji\n");
@@ -190,6 +197,11 @@ void userSetRC1180() {
 
 		scanf("%d", &getData);
 		switch (getData) {
+		case 0: {
+					printf("Koniec konfiguracji radia\n");
+					return;
+					break;
+				}
 		case 1: {
 			printNewVal();
 			scanf("%d", &getData);
@@ -244,31 +256,32 @@ void userSetRC1180() {
 			printf("wybierz poprawny numer");
 		}
 		}
+		copyConfigRamToEEprom();
 	}
 }
 
-void copyApplicationSetingFromFlashToRam(){
-	uint8_t i;
-	for(i=0; i!=sizeof(slaveModulesAddress); i++){
-		slaveModulesAddress[i] = FlashslaveModulesAddress[i];
-	}
-	numberSlaveModules = FlashnumberSlaveModules;
-}
-
-void copyApplicationSetingFromEepromToRam(){
-	uint8_t i;
-		for(i=0; i!=sizeof(slaveModulesAddress); i++){
-			slaveModulesAddress[i] = EEslaveModulesAddress[i];
-		}
-		numberSlaveModules = EEnumberSlaveModules;
-}
-
-void copyApplicationSetingFromRamToEeprom(){
-	uint8_t i;
-		for(i=0; i!=sizeof(slaveModulesAddress); i++){
-			EEslaveModulesAddress[i] = slaveModulesAddress[i];
-		}
-		EEnumberSlaveModules = numberSlaveModules;
-}
+//void copyApplicationSetingFromFlashToRam(){
+//	uint8_t i;
+//	for(i=0; i!=sizeof(slaveModulesAddress); i++){
+//		slaveModulesAddress[i] = FlashslaveModulesAddress[i];
+//	}
+//	numberSlaveModules = FlashnumberSlaveModules;
+//}
+//
+//void copyApplicationSetingFromEepromToRam(){
+//	uint8_t i;
+//		for(i=0; i!=sizeof(slaveModulesAddress); i++){
+//			slaveModulesAddress[i] = EEslaveModulesAddress[i];
+//		}
+//		numberSlaveModules = EEnumberSlaveModules;
+//}
+//
+//void copyApplicationSetingFromRamToEeprom(){
+//	uint8_t i;
+//		for(i=0; i!=sizeof(slaveModulesAddress); i++){
+//			EEslaveModulesAddress[i] = slaveModulesAddress[i];
+//		}
+//		EEnumberSlaveModules = numberSlaveModules;
+//}
 
 

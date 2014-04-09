@@ -32,17 +32,17 @@ typedef struct RC1180Config{
 	uint8_t endChar[2];
 	uint8_t addressMode[2];
 } TRC1180Config;
-#define CONFIGSIZE 11;
+//#define CONFIGSIZE 11;
 
 void radioRC1180Init();
-void setDestinationAddres(uint8_t destAddress);
+void setDestinationAddres(uint8_t destAddress);;
 uint8_t sendCommandToRC1180(uint8_t command, uint8_t data);
 void programMemoryRC1180(uint8_t *data, uint8_t numberData);
 void copyConfigEEpromToRam();
 void copyConfigRamToEEprom();
 void copyConfigFlashToRam();
 void setRC1180FromConfigRam();
-void userSetRC1180();
+void userSetRC1180(void);
 void copyApplicationSetingFromFlashToRam();
 void copyApplicationSetingFromEepromToRam();
 void copyApplicationSetingFromRamToEeprom();

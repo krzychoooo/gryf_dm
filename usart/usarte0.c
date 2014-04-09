@@ -8,6 +8,37 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include "usarte0.h"
+#include "xmega_baud.h"
+#include "../pcb.h"
+
+volatile uint8_t *timere0;
+
+uint8_t baudRateIndex;
+uint8_t eeBaudRateIndex EEMEM;
+
+const char string_1[] PROGMEM = "1200";
+const char string_2[] PROGMEM = "2400";
+const char string_3[] PROGMEM = "4800";
+const char string_4[] PROGMEM = "9600";
+const char string_5[] PROGMEM = "19200";
+const char string_6[] PROGMEM = "28800";
+const char string_7[] PROGMEM = "38400";
+const char string_8[] PROGMEM = "57600";
+const char string_9[] PROGMEM = "115200";
+const PGM_P stringBaudRateTable[] PROGMEM =
+{
+	string_1,
+	string_2,
+	string_3,
+	string_4,
+	string_5,
+	string_6,
+	string_7,
+	string_8,
+	string_9
+};
+
+const uint16_t baudRateTable[] = {0x000d04, 0xFd03, 0xed01, 0xdcfd,  0xccf5, 0xc89e, 0xbce5,  0xb88e, 0xa86e};
 
 char rx_buffer_usarte0[RX_BUFFER_SIZE_USARTE0];
 
@@ -23,6 +54,8 @@ unsigned char tx_wr_index_usarte0=0,tx_rd_index_usarte0=0,tx_counter_usarte0=0;
 void usarte0_init()
 {
 
+	if(baudRateIndex == 0xff) baudRateIndex=0x00;
+	baudRateIndex = eeprom_read_byte(&eeBaudRateIndex);
 // Note: the correct PORTC direction for the RxD, TxD and XCK signals
 // is configured in the ports_init function
 
@@ -49,10 +82,15 @@ USARTE0.CTRLC=USART_CMODE_ASYNCHRONOUS_gc | USART_PMODE_DISABLED_gc | USART_CHSI
 USARTE0.CTRLA=(USARTE0.CTRLA & (~(USART_RXCINTLVL_gm | USART_TXCINTLVL_gm | USART_DREINTLVL_gm))) |
 	USART_RXCINTLVL_LO_gc | USART_TXCINTLVL_LO_gc | USART_DREINTLVL_OFF_gc;
 
-// Required Baud rate: 115200
-// Real Baud Rate: 115211,5 (x1 Mode), Error: 0,0 %
-USARTE0.BAUDCTRLA=0x2E;
-USARTE0.BAUDCTRLB=((0x09 << USART_BSCALE_gp) & USART_BSCALE_gm) | 0x08;
+
+USARTE0.BAUDCTRLA = (uint8_t) baudRateTable[baudRateIndex];
+USARTE0.BAUDCTRLB = (uint8_t) (baudRateTable[baudRateIndex]>>8);
+//USARTE0.BAUDCTRLA = BSEL(F_CPU,BAUDRATE) & 0xff;
+//USARTE0.BAUDCTRLB = (BSCALE(F_CPU,BAUDRATE) << USART_BSCALE0_bp) | (BSEL(F_CPU,BAUDRATE) >> 8);
+//// Required Baud rate: 115200
+//// Real Baud Rate: 115211,5 (x1 Mode), Error: 0,0 %
+//USARTE0.BAUDCTRLA=0x2E;
+//USARTE0.BAUDCTRLB=((0x09 << USART_BSCALE_gp) & USART_BSCALE_gm) | 0x08;
 
 // Receiver: On
 // Transmitter: On
@@ -101,6 +139,30 @@ asm("sei");
 return data;
 }
 
+
+void registerTimere0(volatile uint8_t * t){
+	timere0 = t;
+}
+
+
+char getchare0time(uint8_t time)
+{
+char data;
+
+*timere0 = time;
+while ((rx_counter_usarte0 == 0) && (*timere0));
+if(*timere0 == 0){
+	return 0x0000;		// brak znaków
+}
+while (rx_counter_usarte0==0);
+data=rx_buffer_usarte0[rx_rd_index_usarte0++];
+if (rx_rd_index_usarte0 == RX_BUFFER_SIZE_USARTE0) rx_rd_index_usarte0=0;
+asm("cli");
+--rx_counter_usarte0;
+asm("sei");
+return data;
+}
+
 // USARTE0 Transmitter interrupt service routine
 ISR (USARTE0_TXC_vect)
 {
@@ -121,7 +183,7 @@ PORTC.OUTTGL = 0X10;
 }
 
 
-void putchare0(char c)
+void putchare0(uint8_t c)
 {
 while (tx_counter_usarte0 == TX_BUFFER_SIZE_USARTE0);
 asm("cli");
@@ -133,7 +195,7 @@ if (tx_counter_usarte0 || ((USARTE0.STATUS & USART_DREIF_bm)==0))
    }
 else{
 #ifdef UARTE0_DE_PORT
-		UARTE0_DE_PORT |= UARTE0_DE_BIT;	// zablokuj nadajnik RS485
+		UARTE0_DE_PORT |= UARTE0_DE_BIT;	// odblokuj nadajnik RS485
 #endif
 	USARTE0.DATA=c;
 }

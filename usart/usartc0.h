@@ -8,7 +8,8 @@
 #ifndef USARTC0_H_
 #define USARTC0_H_
 
-extern volatile uint8_t *timer;
+extern volatile uint8_t *timerc0;
+extern unsigned char rx_counter_usartc0;
 
 // USARTC0 initialization
 void usartc0_init();
@@ -16,6 +17,7 @@ void usartc0_init();
 // USARTC0 Receiver buffer
 #define RX_BUFFER_SIZE_USARTC0 8
 
+void registerTimerc0(volatile uint8_t * t);
 char getcharc0();
 int getcharc0Time(uint8_t time);
 

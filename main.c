@@ -13,10 +13,26 @@
 #include "pcb.h"
 #include "./USART/usartc0.h"
 #include "./USART/usartd0.h"
+#include "./USART/usarte0.h"
 #include "./XMEGA_CLK/xmega_clk.h"
+#include "timer0x.h"
+#include "radio_config.h"
+#include "radioFrame.h"
+#include "rs485Frame.h"
+
 
 FILE mystdout = FDEV_SETUP_STREAM(putchard0Stream, NULL, _FDEV_SETUP_WRITE);
 FILE mystdin = FDEV_SETUP_STREAM(NULL, getchard0, _FDEV_SETUP_READ);
+
+volatile uint8_t timer10ms;
+
+void enterSetup(){
+	printf("%cNaciœnij spacjê\n",12);
+	if((char) (getchard0Time((uint8_t) 255)) == ' '){
+		userSetRC1180();
+		userSetRs485();
+	}
+}
 
 int main()
 {
@@ -48,6 +64,7 @@ int main()
 		system_clocks_init();
 		usartc0_init();
 		usartd0_init();
+		usarte0_init();
 
 		PORTC.DIRSET = 0X10;
 		PORTC.OUTTGL = 0X10;
@@ -59,9 +76,25 @@ int main()
 		_delay_ms(4000);
 		CONFIG_RADIO_ON;
 
+registerTimerd0(&timer10ms);
+
+//Setting RC1180
+		copyConfigRamToEEprom();
+		setRC1180FromConfigRam();
+
+//Setting RS485
+		copyModuleConfigEEpromToRam();
+
+//enter to user setup
+		enterSetup();
+
+//timer0 init
+		tcc0_init();
+		registerTimerInTimer0( &timer10ms);
+
 		while(1){
-//			putchard0(0x41);
-//			_delay_ms(1000);
+			sendAskFrameRadio(4);
+			_delay_ms(1000);
 		}
 
 }

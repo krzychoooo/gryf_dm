@@ -13,6 +13,8 @@
 #include "../pcb.h"
 #include "xmega_baud.h"
 
+volatile uint8_t* timerd0;
+
 char rx_buffer_usartd0[RX_BUFFER_SIZE_USARTD0];
 
 // This flag is set on USARTD0 Receiver buffer overflow
@@ -115,6 +117,32 @@ asm("cli");
 asm("sei");
 return data;
 }
+
+void registerTimerd0(volatile uint8_t* t){
+	timerd0 = t;
+}
+
+
+char getchard0Time(uint8_t time)
+{
+int data;
+
+*timerd0 = time;
+while ((rx_counter_usartd0 == 0) && (*timerd0));
+if(*timerd0 == 0){
+	return 0x0000;		// brak znaków
+}
+
+while (rx_counter_usartd0==0);
+data=rx_buffer_usartd0[rx_rd_index_usartd0++];
+if (rx_rd_index_usartd0 == RX_BUFFER_SIZE_USARTD0) rx_rd_index_usartd0=0;
+
+asm("cli");
+--rx_counter_usartd0;
+asm("sei");
+return data;
+}
+
 
 // USARTD0 Transmitter interrupt service routine
 ISR (USARTD0_TXC_vect)

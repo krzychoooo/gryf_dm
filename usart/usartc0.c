@@ -11,7 +11,7 @@
 #include "usartd0.h"
 #include "xmega_baud.h"
 
-volatile uint8_t *timer;
+volatile uint8_t *timerc0;
 
 char rx_buffer_usartc0[RX_BUFFER_SIZE_USARTC0];
 
@@ -111,16 +111,16 @@ char getcharc0() {
 	return data;
 }
 
-void registerTimer(uint8_t *t){
-	timer = t;
+void registerTimerc0(volatile uint8_t * t){
+	timerc0 = t;
 }
 
 int getcharc0Time(uint8_t time) {
 	int data;
 
-	*timer = time;
-	while ((rx_counter_usartc0 == 0) && (*timer));
-	if(*timer){
+	*timerc0 = time;
+	while ((rx_counter_usartc0 == 0) && (*timerc0));
+	if(*timerc0 == 0){
 		return 0x0000;		// brak znaków
 	}
 	data = rx_buffer_usartc0[rx_rd_index_usartc0++];

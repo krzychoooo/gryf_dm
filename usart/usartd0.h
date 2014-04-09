@@ -10,6 +10,9 @@
 
 #include <stdio.h>
 
+extern volatile uint8_t* timerd0;
+extern unsigned char rx_counter_usartd0;
+
 // USARTD0 initialization
 void usartd0_init();
 
@@ -17,6 +20,8 @@ void usartd0_init();
 #define RX_BUFFER_SIZE_USARTD0 8
 
 int getchard0(FILE *stream);
+void registerTimerd0(volatile uint8_t* t);
+char getchard0Time(uint8_t time);
 
 // USARTD0 Transmitter buffer
 #define TX_BUFFER_SIZE_USARTD0 8

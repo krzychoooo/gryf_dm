@@ -10,8 +10,10 @@
 
 #include <avr/io.h>
 
-#define INFRAMERADIOBUFFERSIZE 16
+#define INFRAMERADIOBUFFERSIZE 64
 
+extern volatile uint8_t inFrameBufferWrIndex;
+extern volatile uint8_t inFrameBufferRdIndex;
 extern uint8_t inFrameBuffer[INFRAMERADIOBUFFERSIZE];
 
 void sendAskFrameRadio(uint8_t didAddress1);
