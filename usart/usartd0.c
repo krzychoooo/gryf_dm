@@ -22,8 +22,8 @@ char rx_buffer_overflow_usartd0=0;
 
 char tx_buffer_usartd0[TX_BUFFER_SIZE_USARTD0];
 
-unsigned char rx_wr_index_usartd0=0,rx_rd_index_usartd0=0,rx_counter_usartd0=0;
-unsigned char tx_wr_index_usartd0=0,tx_rd_index_usartd0=0,tx_counter_usartd0=0;
+volatile unsigned char rx_wr_index_usartd0=0,rx_rd_index_usartd0=0,rx_counter_usartd0=0;
+volatile unsigned char tx_wr_index_usartd0=0,tx_rd_index_usartd0=0,tx_counter_usartd0=0;
 
 // USARTD0 initialization
 void usartd0_init()
@@ -89,17 +89,16 @@ uint8_t data;
 
 status=USARTD0.STATUS;
 data=USARTD0.DATA;
-//if ((status & (USART_FERR_bm | USART_PERR_bm | USART_BUFOVF_bm)) == 0)
-//   {
-//   rx_buffer_usartd0[rx_wr_index_usartd0++]=data;
-//   if (rx_wr_index_usartd0 == RX_BUFFER_SIZE_USARTD0) rx_wr_index_usartd0=0;
-//   if (++rx_counter_usartd0 == RX_BUFFER_SIZE_USARTD0)
-//      {
-//      rx_counter_usartd0=0;
-//      rx_buffer_overflow_usartd0=1;
-//      }
-//   }
-putcharc0(data);
+if ((status & (USART_FERR_bm | USART_PERR_bm | USART_BUFOVF_bm)) == 0)
+   {
+   rx_buffer_usartd0[rx_wr_index_usartd0++]=data;
+   if (rx_wr_index_usartd0 == RX_BUFFER_SIZE_USARTD0) rx_wr_index_usartd0=0;
+   if (++rx_counter_usartd0 == RX_BUFFER_SIZE_USARTD0)
+      {
+      rx_counter_usartd0=0;
+      rx_buffer_overflow_usartd0=1;
+      }
+   }
 }
 
 

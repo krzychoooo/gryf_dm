@@ -49,6 +49,7 @@ void copyConfigFlashToRam() {
 }
 
 void setRC1180FromConfigRam() {
+
 	programMemoryRC1180(&rc1180ConfigRam.uIAddress[0], sizeof(rc1180ConfigRam));
 }
 
@@ -142,18 +143,27 @@ uint8_t sendCommandToRC1180(uint8_t command, uint8_t data) {
  * param numberData	number to sent data  (numberData = data.len/2)  {adr1, data1, ..... adrn, datan}
  */
 void programMemoryRC1180(uint8_t *data, uint8_t numberData) {
-	uint8_t i, j;
+	uint8_t i;
+	char j;
+
 	CONFIG_RADIO_ON;
+
+	printf("test\n");
+
 	j = getcharc0();		// rec '>'
+
+	printf("test=%c\n",j);
+
 	putcharc0('M');
-	j = getcharc0();
-	for (i = 0; i != numberData; i++) {
+//	j = getcharc0();
+	printf("test po M =%c\n",j);
+	for (i = 0; i != numberData/2; i++) {
 		putcharc0(*data++);
 		putcharc0(*data++);
 	}
 
 	putcharc0(0xff);
-	j = getcharc0();
+//	j = getcharc0();
 	putcharc0('X');
 	CONFIG_RADIO_OFF;
 }

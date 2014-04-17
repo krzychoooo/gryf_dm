@@ -38,7 +38,7 @@ const PGM_P stringBaudRateTable[] PROGMEM =
 	string_9
 };
 
-const uint16_t baudRateTable[] = {0x000d04, 0xFd03, 0xed01, 0xdcfd,  0xccf5, 0xc89e, 0xbce5,  0xb88e, 0xa86e};
+const uint16_t baudRateTable[] = {0x0d04, 0xFd03, 0xed01, 0xdcfd,  0xccf5, 0xc89e, 0xbce5,  0xb88e, 0xa86e};
 
 char rx_buffer_usarte0[RX_BUFFER_SIZE_USARTE0];
 
@@ -47,27 +47,32 @@ char rx_buffer_overflow_usarte0=0;
 
 char tx_buffer_usarte0[TX_BUFFER_SIZE_USARTE0];
 
-unsigned char rx_wr_index_usarte0=0,rx_rd_index_usarte0=0,rx_counter_usarte0=0;
-unsigned char tx_wr_index_usarte0=0,tx_rd_index_usarte0=0,tx_counter_usarte0=0;
+volatile unsigned char rx_wr_index_usarte0=0,rx_rd_index_usarte0=0,rx_counter_usarte0=0;
+volatile unsigned char tx_wr_index_usarte0=0,tx_rd_index_usarte0=0,tx_counter_usarte0=0;
 
 // USARTe0 initialization
 void usarte0_init()
 {
 
-	if(baudRateIndex == 0xff) baudRateIndex=0x00;
 	baudRateIndex = eeprom_read_byte(&eeBaudRateIndex);
+	if(baudRateIndex == 0xff) {
+		baudRateIndex=0x04;
+		eeprom_write_byte(&eeBaudRateIndex, 0x04);
+	}
+
 // Note: the correct PORTC direction for the RxD, TxD and XCK signals
 // is configured in the ports_init function
 
 // Transmitter is enabled
 // Set TxD=1
-PORTC.OUTSET=0x08;
-PORTC.DIRSET=0X08;
+PORTE.OUTSET=0x0c;
+PORTE.PIN2CTRL = PORT_OPC_PULLUP_gc;
+PORTE.DIRSET=0X08;
 
-#ifdef UARTE0_DE_PORT
+#ifdef USARTE0_DE_PORT
 		// inicjalizujemy liniê steruj¹c¹ nadajnikiem
-		UARTE0_DE_DIR |= UARTE0_DE_BIT;
-		UARTE0_DE_ODBIERANIE;
+		USARTE0_DE_ODBIERANIE;
+		USARTE0_RE_ODBIERANIE;
 	#endif
 
 // Communication mode: Asynchronous USART
@@ -97,7 +102,7 @@ USARTE0.BAUDCTRLB = (uint8_t) (baudRateTable[baudRateIndex]>>8);
 // Double transmission speed mode: Off
 // Multi-processor communication mode: Off
 USARTE0.CTRLB=(USARTE0.CTRLB & (~(USART_RXEN_bm | USART_TXEN_bm | USART_CLK2X_bm | USART_MPCM_bm | USART_TXB8_bm))) |
-	USART_RXEN_bm | USART_TXEN_bm;
+	USART_RXEN_bm | USART_TXEN_bm | USART_CLK2X_bm;
 }
 
 
@@ -166,7 +171,6 @@ return data;
 // USARTE0 Transmitter interrupt service routine
 ISR (USARTE0_TXC_vect)
 {
-PORTC.OUTTGL = 0X10;
 	if (tx_counter_usarte0)
 	   {
 	   --tx_counter_usarte0;
@@ -174,10 +178,12 @@ PORTC.OUTTGL = 0X10;
 	   if (tx_rd_index_usarte0 == TX_BUFFER_SIZE_USARTE0) tx_rd_index_usarte0=0;
 	   }
 	else{
-#ifdef UARTE0_DE_PORT
-
-		UARTE0_DE_PORT &= ~UARTE0_DE_BIT;	// zablokuj nadajnik RS485
-
+#ifdef USARTE0_DE_PORT
+		rx_wr_index_usarte0=0;		// clean receiver
+		rx_rd_index_usarte0=0;
+		rx_counter_usarte0=0;
+		USARTE0_DE_ODBIERANIE;	// zablokuj nadajnik RS485
+		USARTE0_RE_ODBIERANIE;
 #endif
 	}
 }
@@ -194,8 +200,9 @@ if (tx_counter_usarte0 || ((USARTE0.STATUS & USART_DREIF_bm)==0))
    ++tx_counter_usarte0;
    }
 else{
-#ifdef UARTE0_DE_PORT
-		UARTE0_DE_PORT |= UARTE0_DE_BIT;	// odblokuj nadajnik RS485
+#ifdef USARTE0_DE_PORT
+		USARTE0_DE_NADAWANIE;	// odblokuj nadajnik RS485
+		USARTE0_RE_NADAWANIE;
 #endif
 	USARTE0.DATA=c;
 }

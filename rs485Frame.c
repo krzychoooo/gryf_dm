@@ -26,23 +26,40 @@ void sendAlarmFrame() {
 	uint16_t crc16;
 
 	crc16 = 0xffff;
+
 	putchare0(0x00);							//MCA
 	crc16 = _crc16_update(crc16, 0);
+
 	putchare0(inFrameBufferWrIndex);		//size
 	crc16 = _crc16_update(crc16, inFrameBufferWrIndex);
+
 	putchare0(moduleConfig.myAddress);		//MDA
 	crc16 = _crc16_update(crc16, moduleConfig.myAddress);
+
 	putchare0(state);						//MD Dat  stan modu³u
 	crc16 = _crc16_update(crc16, state);
+
 	for (inFrameBufferRdIndex = 0; inFrameBufferRdIndex != inFrameBufferWrIndex; inFrameBufferRdIndex++) {
 		putchare0(inFrameBuffer[inFrameBufferRdIndex]);
 		crc16 = _crc16_update(crc16, inFrameBuffer[inFrameBufferRdIndex]);
 	}
+
 	putchare0((uint8_t) crc16);
-	putchare0((uint8_t) crc16 >> 8);
+	putchare0((uint8_t) (crc16 >> 8));
 	inFrameBufferRdIndex = 0;
 	inFrameBufferWrIndex = 0;
 }
+
+
+/*
+ * return error code
+ * 0 - OK
+ * 1 - no farame in buffer
+ * 2 - already no implement
+ * 3 - already no implement
+ * 4 - frame OK but not my addres
+ * 5 - CRC16 error
+ */
 
 uint8_t getFrameFromMc() {
 	uint16_t iData;
@@ -50,30 +67,41 @@ uint8_t getFrameFromMc() {
 	uint8_t frameType;
 	uint8_t i;
 	uint16_t crc16;
+	uint8_t debugFrame;
+
+	debugFrame = 0;
 
 	if (rx_counter_usarte0) {
 		crc16 = 0xffff;
-		iData = getchare0time(0x0a);		// 10ms wait
-		if ((iData & 0x0100) == 0)
-			return 1;
+
+		iData = getchare0time(0x0a);
+		if(debugFrame)printf("%c",iData);
+		crc16 = _crc16_update(crc16, (uint8_t) iData);
 		myAddress = (uint8_t) iData;
-		crc16 = _crc16_update(crc16, myAddress);
+
 		iData = getchare0time(10);
+		if(debugFrame)printf("%c",iData);
+		crc16 = _crc16_update(crc16, (uint8_t) iData);
 		frameType = (uint8_t) iData;
-		crc16 = _crc16_update(crc16, myAddress);
 
 		// read crc
 		iData = getchare0time(10);
-		i = (uint8_t) iData;
-		crc16 = _crc16_update(crc16, i);
-		iData = getchare0time(10);
+		if(debugFrame)printf("%c", (uint8_t) iData);
 		i = (uint8_t) iData;
 		crc16 = _crc16_update(crc16, i);
 
-		if (myAddress != moduleConfig.myAddress)
-			return 4;
+		iData = getchare0time(10);
+		if(debugFrame)printf("%c", (uint8_t) iData);
+		i = (uint8_t) iData;
+		crc16 = _crc16_update(crc16, i);
+
+		if(debugFrame)printf("%c%c\n",(uint8_t)crc16, (uint8_t)(crc16>>8));
+
 		if (crc16 != 0)
 			return 5;
+
+		if (myAddress != moduleConfig.myAddress)
+			return 4;
 
 		return 0;
 	} else
@@ -90,7 +118,7 @@ void userSetRs485() {
 	while (1) {
 		printf("0 Wyjœcie z edycji\n");
 		strcpy_P(buffer, (PGM_P) pgm_read_word(&(stringBaudRateTable[baudRateIndex])));
-		printf("1 Szybkoœæ transmisji %s", buffer);
+		printf("1 Szybkoœæ transmisji %s\n", buffer);
 		printf("2 Adres modu³u %d\n", moduleConfig.myAddress);
 		printf("\nWybierz numer parametru do edycji\n");
 
