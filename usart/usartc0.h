@@ -9,7 +9,7 @@
 #define USARTC0_H_
 
 extern volatile uint8_t *timerc0;
-extern unsigned char rx_counter_usartc0;
+extern volatile unsigned char rx_counter_usartc0;
 
 // USARTC0 initialization
 void usartc0_init();

@@ -25,6 +25,7 @@ FILE mystdout = FDEV_SETUP_STREAM(putchard0Stream, NULL, _FDEV_SETUP_WRITE);
 FILE mystdin = FDEV_SETUP_STREAM(NULL, getchard0, _FDEV_SETUP_READ);
 
 volatile uint8_t timer10ms;
+uint8_t addressMd;
 
 void enterSetup(){
 	printf("%cNaciœnij spacjê\n",12);
@@ -37,7 +38,10 @@ void enterSetup(){
 int main()
 {
 	unsigned char n;
+	uint8_t debugMode;
+	uint16_t simulateCounter;
 
+	debugMode = 1;
 
 	stdin = &mystdin;
 	stdout = &mystdout;
@@ -66,35 +70,58 @@ int main()
 		usartd0_init();
 		usarte0_init();
 
-		PORTC.DIRSET = 0X10;
-		PORTC.OUTTGL = 0X10;
+		PORTC.DIRSET = 0X38 + 0x02 + 0x01;
+		PORTA.DIRSET = 0X20;
+		PORTD.DIRSET = 0X38;
+//		CONFIG_RADIO_DIR_OUT;
 
 		asm("sei");
 
-		CONFIG_RADIO_DIR_OUT;
+//		_delay_ms(10);
 		CONFIG_RADIO_OFF;
-		_delay_ms(4000);
-		CONFIG_RADIO_ON;
+//		putcharc0('X');
+//		_delay_ms(100);
 
-registerTimerd0(&timer10ms);
+		registerTimerd0(&timer10ms);
+		registerTimerc0(&timer10ms);
+		registerTimere0(&timer10ms);
+
+		if(debugMode)printf("hello\n");
 
 //Setting RC1180
+		RESET_RADIO_OFF;
+		_delay_ms(5);
+		RESET_RADIO_ON;
+		_delay_ms(5);
+		LED1_OFF;
+
 		copyConfigRamToEEprom();
 		setRC1180FromConfigRam();
 
 //Setting RS485
 		copyModuleConfigEEpromToRam();
 
-//enter to user setup
-		enterSetup();
-
 //timer0 init
 		tcc0_init();
 		registerTimerInTimer0( &timer10ms);
 
+//enter to user setup
+		enterSetup();
+
+		simulateCounter=0;
 		while(1){
-			sendAskFrameRadio(4);
-			_delay_ms(1000);
+			n = getFrameFromMc();
+			if(debugMode)printf("%d\n",n);
+			if( n == 0 ) {
+				LED1_ON;
+				if(simulateCounter++ == 3000){
+					simulateCounter=0;
+					alarmSimulate();
+				}
+				sendAlarmFrame();
+				LED1_OFF;
+			}
+			_delay_ms(1);
 		}
 
 }

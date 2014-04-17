@@ -10,6 +10,7 @@
 
 #include <avr/eeprom.h>
 #include <avr/pgmspace.h>
+#include "../pcb.h"
 
 #define BAUDRATE 19200
 
@@ -24,7 +25,7 @@ extern const char string_8[];
 extern const char string_9[];
 extern const PGM_P stringBaudRateTable[];
 extern volatile uint8_t *timere0;
-extern unsigned char rx_counter_usarte0;
+extern volatile unsigned char rx_counter_usarte0;
 extern uint8_t baudRateIndex;
 extern uint8_t eeBaudRateIndex EEMEM;
 extern const uint16_t baudRateTable[] ;

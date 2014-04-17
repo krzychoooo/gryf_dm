@@ -8,9 +8,8 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include "usartc0.h"
-#include "usartd0.h"
 #include "xmega_baud.h"
-
+#include "../pcb.h"
 volatile uint8_t *timerc0;
 
 char rx_buffer_usartc0[RX_BUFFER_SIZE_USARTC0];
@@ -20,10 +19,8 @@ char rx_buffer_overflow_usartc0 = 0;
 
 char tx_buffer_usartc0[TX_BUFFER_SIZE_USARTC0];
 
-unsigned char rx_wr_index_usartc0 = 0, rx_rd_index_usartc0 = 0,
-		rx_counter_usartc0 = 0;
-unsigned char tx_wr_index_usartc0 = 0, tx_rd_index_usartc0 = 0,
-		tx_counter_usartc0 = 0;
+volatile unsigned char rx_wr_index_usartc0 = 0, rx_rd_index_usartc0 = 0,	rx_counter_usartc0 = 0;
+volatile unsigned char tx_wr_index_usartc0 = 0, tx_rd_index_usartc0 = 0,	tx_counter_usartc0 = 0;
 
 // USARTC0 initialization
 void usartc0_init() {
@@ -79,27 +76,25 @@ void usartc0_init() {
 ISR(USARTC0_RXC_vect) {
 	unsigned char status;
 	char data;
-
 	status = USARTC0.STATUS;
 	data = USARTC0.DATA;
-//if ((status & (USART_FERR_bm | USART_PERR_bm | USART_BUFOVF_bm)) == 0)
-//   {
-//   rx_buffer_usartc0[rx_wr_index_usartc0++]=data;
-//   if (rx_wr_index_usartc0 == RX_BUFFER_SIZE_USARTC0) rx_wr_index_usartc0=0;
-//   if (++rx_counter_usartc0 == RX_BUFFER_SIZE_USARTC0)
-//      {
-//      rx_counter_usartc0=0;
-//      rx_buffer_overflow_usartc0=1;
-//      }
-//   }
-	putchard0(data);
+if ((status & (USART_FERR_bm | USART_PERR_bm | USART_BUFOVF_bm)) == 0)
+   {
+   rx_buffer_usartc0[rx_wr_index_usartc0++]=data;
+   if (rx_wr_index_usartc0 == RX_BUFFER_SIZE_USARTC0) rx_wr_index_usartc0=0;
+   if (++rx_counter_usartc0 == RX_BUFFER_SIZE_USARTC0)
+      {
+      rx_counter_usartc0=0;
+      rx_buffer_overflow_usartc0=1;
+      }
+   }
 }
 
 char getcharc0() {
 	char data;
 
-	while (rx_counter_usartc0 == 0)
-		;
+
+	while (rx_counter_usartc0 == 0);
 	data = rx_buffer_usartc0[rx_rd_index_usartc0++];
 #if RX_BUFFER_SIZE_USARTC0 != 256
 	if (rx_rd_index_usartc0 == RX_BUFFER_SIZE_USARTC0)
@@ -144,9 +139,7 @@ ISR (USARTC0_TXC_vect) {
 			tx_rd_index_usartc0 = 0;
 	} else {
 #ifdef UARTC0_DE_PORT
-
 		UARTC0_DE_PORT &= ~UARTC0_DE_BIT;	// zablokuj nadajnik RS485
-
 #endif
 	}
 }

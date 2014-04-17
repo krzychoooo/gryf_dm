@@ -11,7 +11,7 @@
 #include <stdio.h>
 
 extern volatile uint8_t* timerd0;
-extern unsigned char rx_counter_usartd0;
+extern volatile unsigned char rx_counter_usartd0;
 
 // USARTD0 initialization
 void usartd0_init();
