@@ -1,4 +1,5 @@
 /Release
+.externalToolBuilders
 .cproject
 .project
 .settings/
