@@ -111,7 +111,7 @@ int main()
 		simulateCounter=0;
 		while(1){
 			n = getFrameFromMc();
-			if(debugMode)printf("%d\n",n);
+			if(debugMode)printf("%d ",n);
 			if( n == 0 ) {
 				LED1_ON;
 				if(simulateCounter++ == 3000){
