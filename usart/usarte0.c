@@ -25,7 +25,7 @@ const char string_6[] PROGMEM = "28800";
 const char string_7[] PROGMEM = "38400";
 const char string_8[] PROGMEM = "57600";
 const char string_9[] PROGMEM = "115200";
-const PGM_P stringBaudRateTable[] PROGMEM =
+const PGM_P stringBaudRateTable[]  =
 {
 	string_1,
 	string_2,

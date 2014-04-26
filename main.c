@@ -127,7 +127,7 @@ int main()
 		while(1){
 			sendAskFramesRadio();
 			n = getFrameFromMc();
-			if(debugMode)printf("%d\n",n);
+			if(debugMode)printf("%d ",n);
 			if( n == 0 ) {
 				LED1_ON;
 //				if(simulateCounter++ == 3000){
