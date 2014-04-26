@@ -27,13 +27,21 @@ FILE mystdin = FDEV_SETUP_STREAM(NULL, getchard0, _FDEV_SETUP_READ);
 volatile uint8_t timer10ms;
 uint8_t addressMd;
 
-void enterSetup(){
+void enterRadioSetup(){
 	printf("%cNaciœnij spacjê\n",12);
 	if((char) (getchard0Time((uint8_t) 255)) == ' '){
-		userSetRC1180();
+		//userSetRs485();
+	}
+}
+
+void enterModuleSetup(){
+	printf("%cNaciœnij spacjê\n",12);
+	if((char) (getchard0Time((uint8_t) 255)) == ' '){
 		userSetRs485();
 	}
 }
+
+
 
 int main()
 {
@@ -95,29 +103,38 @@ int main()
 		_delay_ms(5);
 		LED1_OFF;
 
-		copyConfigRamToEEprom();
+		copyApplicationSetingFromEepromToRam();
+
+
+		copyRadioConfigFlashToRam();
+		copyApplicationSetingFromFlashToRam();
+//enter to user setup
+		enterRadioSetup();
+		copyApplicationSetingFromEepromToRam();
+		copyRadioConfigEEpromToRam();
 		setRC1180FromConfigRam();
 
 //Setting RS485
 		copyModuleConfigEEpromToRam();
+		enterModuleSetup();
 
 //timer0 init
 		tcc0_init();
 		registerTimerInTimer0( &timer10ms);
 
-//enter to user setup
-		enterSetup();
-
 		simulateCounter=0;
+
 		while(1){
+			sendAskFramesRadio();
 			n = getFrameFromMc();
 			if(debugMode)printf("%d\n",n);
 			if( n == 0 ) {
 				LED1_ON;
-				if(simulateCounter++ == 3000){
-					simulateCounter=0;
-					alarmSimulate();
-				}
+//				if(simulateCounter++ == 3000){
+//					simulateCounter=0;
+//					alarmSimulate();
+//				}
+
 				sendAlarmFrame();
 				LED1_OFF;
 			}

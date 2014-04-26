@@ -17,6 +17,7 @@ extern volatile uint8_t inFrameBufferRdIndex;
 extern uint8_t inFrameBuffer[INFRAMERADIOBUFFERSIZE];
 
 void sendAskFrameRadio(uint8_t didAddress1);
+void sendAskFramesRadio();
 uint8_t getFrameRadio();
 void alarmSimulate(void);
 

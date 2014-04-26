@@ -9,21 +9,35 @@
  * 			RC1180 CONNECT TO USART C
  */
 
+#include <stdlib.h>
+#include <util/delay.h>
+#include <stdio.h>
 #include "radioFrame.h"
 #include "radio_config.h"
 #include "USART/usartc0.h"
 #include "timer0x.h"
-#include <stdlib.h>
+#include "radio_config.h"
+
 
 volatile uint8_t inFrameBufferWrIndex;
 volatile uint8_t inFrameBufferRdIndex;
 uint8_t inFrameBuffer[INFRAMERADIOBUFFERSIZE];		// sk³adowane s¹ adresy i kody zdarzeñ z modu³ów które zosta³y odpytane
 
 void sendAskFrameRadio(uint8_t didAddress){
-	setDestinationAddres(didAddress);
+	setDestinationAddres(didAddress);				// set DID in RC1180
 	putcharc0(didAddress);
 	putcharc0(0);
 	putcharc0('?');
+}
+
+void sendAskFramesRadio(){
+	uint8_t i, result;
+	for(i=0; i!=numberSlaveModules; i++){
+		sendAskFrameRadio(i);
+		_delay_ms(inFrameTime);
+		result = getFrameRadio();
+		printf(" read radio=%d\n",result);
+	}
 }
 
 uint8_t inFrameBufferWrIndexIncrement(){
