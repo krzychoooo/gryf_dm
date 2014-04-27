@@ -85,6 +85,7 @@ int main()
 		registerTimerd0(&timer10ms);
 		registerTimerc0(&timer10ms);
 		registerTimere0(&timer10ms);
+		registerTimerInTimer0( &timer10ms);
 
 		if(debugMode)printf("hello\n");
 
@@ -103,7 +104,7 @@ int main()
 
 //timer0 init
 		tcc0_init();
-		registerTimerInTimer0( &timer10ms);
+
 
 //enter to user setup
 		enterSetup();
@@ -111,16 +112,17 @@ int main()
 		simulateCounter=0;
 		while(1){
 			n = getFrameFromMc();
-			if(debugMode)printf("%d ",n);
+			if(debugMode)printf("gf%d ",n);
 			if( n == 0 ) {
 				LED1_ON;
-				if(simulateCounter++ == 3000){
-					simulateCounter=0;
-					alarmSimulate();
-				}
+//				if(simulateCounter++ == 3000){
+//					simulateCounter=0;
+//					alarmSimulate();
+//				}
 				sendAlarmFrame();
 				LED1_OFF;
 			}
+			sendAskFrameRadio(1);
 			_delay_ms(1);
 		}
 
