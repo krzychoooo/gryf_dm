@@ -18,16 +18,17 @@
 #include "timer0x.h"
 #include "radio_config.h"
 
-
 volatile uint8_t inFrameBufferWrIndex;
 volatile uint8_t inFrameBufferRdIndex;
 uint8_t inFrameBuffer[INFRAMERADIOBUFFERSIZE];		// sk³adowane s¹ adresy i kody zdarzeñ z modu³ów które zosta³y odpytane
 
 void sendAskFrameRadio(uint8_t didAddress){
 	setDestinationAddres(didAddress);				// set DID in RC1180
+	_delay_ms(5);
 	putcharc0(didAddress);
 	putcharc0(0);
 	putcharc0('?');
+	putcharc0(0);
 }
 
 void sendAskFramesRadio(){
@@ -58,27 +59,37 @@ void alarmSimulate(void){
 
 uint8_t getFrameRadio() {
 
-	uint8_t i, j, address;
+	uint8_t i, j, address, error;
 	uint16_t iData;
 
+	error = 0;
 	if (rx_counter_usartc0) {
 		iData = getcharc0Time(10);			//destination address
-		if ((iData & 0x0100) == 0)
-			return 1;
-		iData = getcharc0Time(10);			// my radio address
+//		if ((iData & 0x0100) == 0)
+//			return 1;
+		iData = getcharc0Time(10);			// mm radio address
 		address = (uint8_t) iData;
+//		printf(" dra=%d", address);
 		iData = getcharc0Time(10);			// data size
 		i = (uint8_t) iData;
 		for (j = 0; j != i; j++) {
 			iData = getcharc0Time(10);
-			inFrameBuffer[inFrameBufferWrIndex] = address;
-			if (inFrameBufferWrIndexIncrement())
-				return 2;
-			inFrameBuffer[inFrameBufferWrIndex++] = (uint8_t) iData;
-			if (inFrameBufferWrIndexIncrement())
-				return 2;
+			//printf("kod alarmu = %02x ",(uint8_t) iData);
+			if (((uint8_t) iData) != 0) {
+				inFrameBuffer[inFrameBufferWrIndex] = address;
+				if (inFrameBufferWrIndexIncrement())
+					error |= 2;
+				inFrameBuffer[inFrameBufferWrIndex] = (uint8_t) iData;
+				if (inFrameBufferWrIndexIncrement())
+					error |= 2;
+			}
 		}
-		return 0;
+		iData = getcharc0Time(10);			// get RSSI
+		i = (uint8_t) iData;
+		//printf("power=%d ", (uint8_t) i / 2);
+		while (rx_counter_usartc0)
+			getcharc0();
+		return error;
 	} else
 		return 1;
 }

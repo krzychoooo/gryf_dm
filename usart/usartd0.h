@@ -17,14 +17,14 @@ extern volatile unsigned char rx_counter_usartd0;
 void usartd0_init();
 
 // USARTD0 Receiver buffer
-#define RX_BUFFER_SIZE_USARTD0 8
+#define RX_BUFFER_SIZE_USARTD0 16
 
 int getchard0(FILE *stream);
 void registerTimerd0(volatile uint8_t* t);
 char getchard0Time(uint8_t time);
 
 // USARTD0 Transmitter buffer
-#define TX_BUFFER_SIZE_USARTD0 8
+#define TX_BUFFER_SIZE_USARTD0 16
 
 // Write a character to the USARTD0 Transmitter buffer
 // USARTD0 is used as the default output device by the 'putchar' function

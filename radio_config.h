@@ -10,7 +10,7 @@
 
 #include <avr/io.h>
 
-#define NUMBER_SLAVE 8
+#define NUMBER_SLAVE 4
 
 extern uint8_t slaveModulesAddress[NUMBER_SLAVE];
 extern uint8_t numberSlaveModules;
@@ -60,6 +60,7 @@ void radioRC1180Init();
 void setDestinationAddres(uint8_t destAddress);;
 uint8_t sendCommandToRC1180(uint8_t command, uint8_t data);
 void programMemoryRC1180(uint8_t *data, uint8_t numberData);
+void readConfigMemoryRC1180(void);
 void copyRadioConfigEEpromToRam();
 void copyRadioConfigRamToEEprom();
 void copyRadioConfigFlashToRam();

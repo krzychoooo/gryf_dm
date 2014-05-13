@@ -41,11 +41,13 @@ void sendAlarmFrame() {
 
 	for (inFrameBufferRdIndex = 0; inFrameBufferRdIndex != inFrameBufferWrIndex; inFrameBufferRdIndex++) {
 		putchare0(inFrameBuffer[inFrameBufferRdIndex]);
+		printf(" alarm %02x",inFrameBuffer[inFrameBufferRdIndex]);
 		crc16 = _crc16_update(crc16, inFrameBuffer[inFrameBufferRdIndex]);
 	}
 
 	putchare0((uint8_t) crc16);
 	putchare0((uint8_t) (crc16 >> 8));
+
 	inFrameBufferRdIndex = 0;
 	inFrameBufferWrIndex = 0;
 }
@@ -95,7 +97,7 @@ uint8_t getFrameFromMc() {
 		i = (uint8_t) iData;
 		crc16 = _crc16_update(crc16, i);
 
-		if(debugFrame)printf("%c%c\n",(uint8_t)crc16, (uint8_t)(crc16>>8));
+		if(debugFrame)printf("%c%c\n\r",(uint8_t)crc16, (uint8_t)(crc16>>8));
 
 		if (crc16 != 0)
 			return 5;
@@ -113,42 +115,43 @@ void userSetRs485() {
 	uint8_t i;
 	char buffer[10];
 
-	printf("%cUSTAWIENIA RS485\n",12);
+	printf("\n\rUSTAWIENIA RS485\n\r");
 
 	while (1) {
-		printf("0 Wyjœcie z edycji\n");
+		printf("0 Wyjœcie z edycji\n\r");
 		strcpy_P(buffer, (PGM_P) pgm_read_word(&(stringBaudRateTable[baudRateIndex])));
-		printf("1 Szybkoœæ transmisji %s\n", buffer);
-		printf("2 Adres modu³u %d\n", moduleConfig.myAddress);
-		printf("\nWybierz numer parametru do edycji\n");
+
+		printf("1 Szybkoœæ transmisji %s\n\r", buffer);
+		printf("2 Adres modu³u %d\n\r", moduleConfig.myAddress);
+		printf("\nWybierz numer parametru do edycji\n\r");
 
 		scanf("%d", &getData);
 		switch (getData) {
 		case 0: {
-			printf("Koniec konfiguracji radia\n");
+			printf("Koniec konfiguracji rs485\n\r");
 			return;
 			break;
 		}
 		case 1: {
 			for (i = 0; i != (uint8_t) 9; i++) {
 				strcpy_P(buffer, (PGM_P) pgm_read_word(&(stringBaudRateTable[i])));
-				printf("%d %s\n", i, buffer);
+				printf("%d %s\n\r", i, buffer);
 			}
-			printf("wybierz numer prêdkoœci\n");
+			printf("wybierz numer prêdkoœci\n\r");
 			scanf("%d", &getData);
 			baudRateIndex = (uint8_t) getData;
 			eeprom_write_byte(&eeBaudRateIndex, baudRateIndex);
 			break;
 		}
 		case 2: {
-			printf("podaj adres\n");
+			printf("podaj adres\n\r");
 			scanf("%d", &getData);
 			moduleConfig.myAddress = (uint8_t) getData;
 			copyModuleConfigRamToEEprom();
 			break;
 		}
 		default: {
-			printf("Z£Y WYBÓR\n\n\n");
+			printf("Z£Y WYBÓR\n\n\n\r");
 		}
 		}
 	}

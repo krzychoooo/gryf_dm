@@ -166,6 +166,7 @@ void putchard0(char c)
 {
 while (tx_counter_usartd0 == TX_BUFFER_SIZE_USARTD0);
 asm("cli");
+
 if (tx_counter_usartd0 || ((USARTD0.STATUS & USART_DREIF_bm)==0))
    {
    tx_buffer_usartd0[tx_wr_index_usartd0++]=c;
@@ -178,6 +179,7 @@ else{
 #endif
 	USARTD0.DATA=c;
 }
+
 asm("sei");
 }
 
@@ -185,6 +187,7 @@ asm("sei");
 int putchard0Stream(char c, FILE *stream)
 {
 while (tx_counter_usartd0 == TX_BUFFER_SIZE_USARTD0);
+
 asm("cli");
 if (tx_counter_usartd0 || ((USARTD0.STATUS & USART_DREIF_bm)==0))
    {

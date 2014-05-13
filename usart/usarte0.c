@@ -25,7 +25,7 @@ const char string_6[] PROGMEM = "28800";
 const char string_7[] PROGMEM = "38400";
 const char string_8[] PROGMEM = "57600";
 const char string_9[] PROGMEM = "115200";
-const PGM_P stringBaudRateTable[]  =
+const PGM_P stringBaudRateTable[] PROGMEM =
 {
 	string_1,
 	string_2,
@@ -55,7 +55,7 @@ void usarte0_init()
 {
 
 	baudRateIndex = eeprom_read_byte(&eeBaudRateIndex);
-	if(baudRateIndex == 0xff) {
+	if(baudRateIndex > 9) {
 		baudRateIndex=0x04;
 		eeprom_write_byte(&eeBaudRateIndex, 0x04);
 	}

@@ -21,21 +21,21 @@
 #include "rs485Frame.h"
 
 
-FILE mystdout = FDEV_SETUP_STREAM(putchard0Stream, NULL, _FDEV_SETUP_WRITE);
-FILE mystdin = FDEV_SETUP_STREAM(NULL, getchard0, _FDEV_SETUP_READ);
+static FILE mystdout = FDEV_SETUP_STREAM(putchard0Stream, NULL, _FDEV_SETUP_WRITE);
+static FILE mystdin = FDEV_SETUP_STREAM(NULL, getchard0, _FDEV_SETUP_READ);
 
 volatile uint8_t timer10ms;
 uint8_t addressMd;
 
 void enterRadioSetup(){
-	printf("%cNaciœnij spacjê\n",12);
+	printf("%c Radio set. Naciœnij spacjê\n",12);
 	if((char) (getchard0Time((uint8_t) 255)) == ' '){
-		//userSetRs485();
+		userSetRC1180();
 	}
 }
 
 void enterModuleSetup(){
-	printf("%cNaciœnij spacjê\n",12);
+	printf("%cRS485 set. Naciœnij spacjê\n",12);
 	if((char) (getchard0Time((uint8_t) 255)) == ' '){
 		userSetRs485();
 	}
@@ -45,7 +45,7 @@ void enterModuleSetup(){
 
 int main()
 {
-	unsigned char n;
+	unsigned char n, i;
 	uint8_t debugMode;
 	uint16_t simulateCounter;
 
@@ -106,9 +106,14 @@ int main()
 
 		copyApplicationSetingFromEepromToRam();
 
+//timer0 init
+		tcc0_init();
 
-		copyRadioConfigFlashToRam();
-		copyApplicationSetingFromFlashToRam();
+//		copyRadioConfigFlashToRam();
+//		copyApplicationSetingFromFlashToRam();
+
+		copyApplicationSetingFromEepromToRam();
+		copyRadioConfigEEpromToRam();
 //enter to user setup
 		enterRadioSetup();
 		copyApplicationSetingFromEepromToRam();
@@ -119,32 +124,33 @@ int main()
 		copyModuleConfigEEpromToRam();
 		enterModuleSetup();
 
-//timer0 init
-		tcc0_init();
-
-
 		simulateCounter=0;
 
-		while(1){
-			sendAskFramesRadio();
-			n = getFrameFromMc();
-			if(debugMode)printf("gf%d ",n);
-			if( n == 0 ) {
-				LED1_ON;
-//				if(simulateCounter++ == 3000){
-//					simulateCounter=0;
-//					alarmSimulate();
-//				}
-<<<<<<< HEAD
-=======
+		printf("\n\rPRACA\n\r");
 
->>>>>>> 623758ceb000a5b6fbb6926925a6bcb7dd55d690
+	while (1) {
+
+		do {
+			n = getFrameFromMc();
+//			if (debugMode)printf("gf%d\n\r", n);
+			if (n == 0) {
+				LED1_ON;
 				sendAlarmFrame();
 				LED1_OFF;
 			}
-			sendAskFrameRadio(1);
-			_delay_ms(1);
+		} while (n != 0);
+
+		for (i = 1; i != NUMBER_SLAVE + 1; i++) {
+			sendAskFrameRadio(i);
+
+			_delay_ms(50);
+
+			n = getFrameRadio();
+
+			//if(debugMode)printf("gfr%d \n\r",n);
 		}
+
+	}
 
 }
 
